@@ -21,6 +21,13 @@ impl Reactor {
         return typed_reactor;
     }
 
+    fn new(input: Vec<i64>) -> Self {
+        return Reactor {
+            reactor_type: ReactorType::None,
+            data: input,
+        }.determine_reactor_type()
+    }
+
     fn determine_reactor_type(mut self) -> Self {
         let diff = (self.data[0] - self.data[1]) < 0;
         let reactor_type = match diff {
@@ -51,6 +58,16 @@ impl Reactor {
                 .is_some(),
             ReactorType::None => false,
         }
+    }
+
+    fn is_reactor_damped(&self) -> bool {
+         self.data.iter().enumerate().any(|(x, _)| {
+            let mut new_vec = self.data.clone();
+            new_vec.remove(x);
+            let reactor = Reactor::new(new_vec);
+            return reactor.is_reactor_safe();
+         })
+
     }
 
     fn is_reactor_dampener_safe(&self) -> bool {
@@ -188,7 +205,7 @@ fn main() {
         .iter()
         .fold(0, |acc, x| if x.is_reactor_safe() { acc + 1 } else { acc });
     let damp_count = create_reactors(input).iter().fold(0, |acc, x| {
-        if x.is_reactor_dampener_safe() {
+        if x.is_reactor_damped() {
             acc + 1
         } else {
             acc
